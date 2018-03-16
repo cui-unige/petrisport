@@ -11,7 +11,7 @@ State.__index = State
 function Mt.__call (_, t)
   local result = setmetatable ({
     petrinet   = t.petrinet,
-    free       = t.free or 0,
+    free       = t.free,
     marking    = Marking (t.petrinet),
     successors = {},
   }, State)
@@ -21,13 +21,13 @@ end
 function State.__call (state, transition)
   assert (getmetatable (state) == State)
   assert (getmetatable (transition) == Petrinet.Transition)
+  if not transition:enabled_in (state) then
+    return nil, "transition is not enabled"
+  end
   local free  = 0
   local bound = 0
   local pre   = Marking {}
   for arc in transition:pre () do
-    if arc.valuation > state.marking [arc.place] then
-      return nil, "transition is not enabled"
-    end
     pre [arc.place] = arc.valuation
     bound = bound + arc.valuation
   end
@@ -36,9 +36,7 @@ function State.__call (state, transition)
     post [arc.place] = arc.valuation
     free = free + arc.valuation
   end
-  if free > state.free then
-    return nil, "transition is not enabled"
-  end
+  assert (state.free - free + bound > 0)
   return setmetatable ({
     petrinet   = state.petrinet,
     free       = state.free - free + bound,
@@ -71,7 +69,7 @@ function Petrinet.Transition.enabled_in (transition, state)
   for arc in transition:post () do
     free = free + arc.valuation
   end
-  return state.free > free
+  return state.free >= free
 end
 
 local function goes_to (current, final, path)
@@ -87,6 +85,12 @@ local function goes_to (current, final, path)
   end
   path [current] = nil
   return result
+end
+
+function State.__eq (lhs, rhs)
+  return lhs.petrinet == rhs.petrinet
+     and lhs.free     == rhs.free
+     and lhs.marking  == rhs.marking
 end
 
 function State.__le (lhs, rhs)
@@ -130,13 +134,17 @@ function State.to_dot (state)
       pos       = "-100,0!",
       shape     = "rectangle",
       style     = "filled",
-      fillcolor = "yellow",
+      fillcolor = "palegoldenrod",
     ];
     <% for _, place in state.petrinet:places () do %>
       place_<%- place.identifier %> [
         label = "<%- place.name %> = <%- state.marking [place] %>",
         pos   = "<%- place.x * 100 %>,<%- place.y * 100 %>!",
         shape = "circle",
+        <% if state.marking [place] > 0 then %>
+        style     = "filled",
+        fillcolor = "orchid",
+        <% end %>
       ];
     <% end -%>
     <% for _, transition in state.petrinet:transitions () do %>
@@ -146,7 +154,7 @@ function State.to_dot (state)
         shape     = "rectangle",
         <% if transition:enabled_in (state) then %>
         style     = "filled",
-        fillcolor = "green",
+        fillcolor = "springgreen",
         <% end %>
       ];
       <% for arc in transition:pre () do %>
