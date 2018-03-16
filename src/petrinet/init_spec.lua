@@ -1,5 +1,4 @@
 local assert   = require "luassert"
-local Et       = require "etlua"
 local Petrinet = require "petrinet"
 
 describe ("Petri nets", function ()
@@ -114,19 +113,5 @@ describe ("Petri nets", function ()
     local _ = require "petrinet.example"
   end)
 
-  it ("can export the example to dot", function ()
-    local petrinet = require "petrinet.example"
-    local dot      = petrinet:to_dot ()
-    local filename = os.tmpname ()
-    print ("Dot file: ", filename)
-    local file     = io.open (filename, "w")
-    file:write (dot)
-    file:close ()
-    print (os.execute (Et.render ([[
-      neato -n -Tpdf <%- filename %> -o output.pdf
-    ]], {
-      filename = filename,
-    })))
-  end)
 
 end)
