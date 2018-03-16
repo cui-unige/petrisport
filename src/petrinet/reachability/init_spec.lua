@@ -2,7 +2,7 @@ local assert       = require "luassert"
 local Reachability = require "petrinet.reachability"
 local petrinet     = require "petrinet.example"
 
-describe ("Reachability Reachability", function ()
+describe ("Reachability graph", function ()
 
   it ("can be created with an implicit traversal", function ()
     local reachability = Reachability {
