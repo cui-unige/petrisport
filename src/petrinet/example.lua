@@ -33,7 +33,7 @@ result.p4 = result:place {
 }
 result.p5 = result:place {
   name    = "P5",
-  marking = 0,
+  marking = 2,
   x       = 4,
   y       = 0,
 }
