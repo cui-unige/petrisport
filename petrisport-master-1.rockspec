@@ -1,3 +1,5 @@
+-- luacheck: std rockspec
+
 package = "petrisport"
 version = "master-1"
 source  = {
