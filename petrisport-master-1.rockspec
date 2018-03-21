@@ -17,6 +17,7 @@ description = {
 
 dependencies = {
   "lua >= 5.1",
+  "argparse",
   "busted",
   "luacheck",
   "cluacov",
@@ -27,6 +28,16 @@ dependencies = {
 build = {
   type    = "builtin",
   modules = {
-    ["petrinet"] = "src/petrinet/init.lua",
+    ["petrinet"             ] = "src/petrinet/init.lua",
+    ["petrinet.example"     ] = "src/petrinet/example.lua",
+    ["petrinet.marking"     ] = "src/petrinet/marking/init.lua",
+    ["petrinet.state"       ] = "src/petrinet/state/init.lua",
+    ["petrinet.reachability"] = "src/petrinet/reachability/init.lua",
+    ["petrinet.analysis"    ] = "src/petrinet/analysis/init.lua",
+  },
+  install = {
+    bin = {
+      ["petri-sport"] = "src/petrinet/bin.lua",
+    },
   },
 }

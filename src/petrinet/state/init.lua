@@ -45,6 +45,78 @@ function State.__call (state, transition)
   }, State)
 end
 
+function State.pre (state, transition)
+  assert (getmetatable (state) == State)
+  assert (getmetatable (transition) == Petrinet.Transition)
+  if not transition:enabled_in (state) then
+    return nil, "transition is not enabled"
+  end
+  local free  = 0
+  local pre   = Marking {}
+  for arc in transition:pre () do
+    pre [arc.place] = arc.valuation
+  end
+  for arc in transition:post () do
+    free = free + arc.valuation
+  end
+  return setmetatable ({
+    petrinet   = state.petrinet,
+    free       = state.free - free,
+    marking    = state.marking - pre,
+    successors = {},
+  }, State)
+end
+
+function State.post (state, transition)
+  assert (getmetatable (state) == State)
+  assert (getmetatable (transition) == Petrinet.Transition)
+  local bound = 0
+  for arc in transition:pre () do
+    bound = bound + arc.valuation
+  end
+  local post = Marking {}
+  for arc in transition:post () do
+    post [arc.place] = arc.valuation
+  end
+  return setmetatable ({
+    petrinet   = state.petrinet,
+    free       = state.free + bound,
+    marking    = state.marking + post,
+    successors = {},
+  }, State)
+end
+
+function State.parallel (state)
+  local coroutine = Coromake ()
+  local function iterate (s, transitions, fired)
+    local any = false
+    for i, transition in ipairs (transitions) do
+      if transition:enabled_in (s) then
+        fired [transition] = true
+        table.remove (transitions, i)
+        iterate (s:pre (transition), transitions, fired)
+        table.insert (transitions, i, transition)
+        fired [transition] = nil
+        any = true
+      end
+    end
+    if not any then
+      local result = {}
+      for transition in pairs (fired) do
+        result [#result+1] = transition
+      end
+      coroutine.yield (result)
+    end
+  end
+  local transitions = {}
+  for transition in state:enabled () do
+    transitions [#transitions+1] = transition
+  end
+  return coroutine.wrap (function ()
+    iterate (state, transitions, {})
+  end)
+end
+
 function State.enabled (state)
   assert (getmetatable (state) == State)
   local coroutine = Coromake ()
@@ -58,6 +130,10 @@ function State.enabled (state)
 end
 
 function Petrinet.Transition.enabled_in (transition, state)
+  if getmetatable (state) ~= State then
+    print ("enabled_in", transition, state)
+    print (debug.traceback ())
+  end
   assert (getmetatable (transition) == Petrinet.Transition)
   assert (getmetatable (state) == State)
   for arc in transition:pre () do
@@ -99,6 +175,10 @@ end
 
 function State.__lt (lhs, rhs)
   return lhs ~= rhs and goes_to (lhs, rhs, {})
+end
+
+function State.__tostring (state)
+  return Et.render ([[<%- tostring (marking) %> / <%- free %>]], state)
 end
 
 function State.to_dot (state)

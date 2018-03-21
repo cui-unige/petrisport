@@ -75,10 +75,15 @@ function Marking.__sub (lhs, rhs)
 end
 
 function Marking.__tostring (marking)
-  return Et.render ([[
-    <% for place, tokens in pairs (marking) do %>
-    <%- tostring (place) %> = <%- tokens %>
-    <% end %>]], {
+  local places = {}
+  for place in pairs (marking) do
+    places [#places+1] = place
+  end
+  table.sort (places, function (l, r)
+    return l.name < r.name
+  end)
+  return Et.render ([[<% for _, place in ipairs (places) do %> <%- place.name %> = <%- marking [place] %> <% end %>]], {
+    places  = places,
     marking = marking,
   })
 end

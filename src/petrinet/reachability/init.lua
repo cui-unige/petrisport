@@ -76,23 +76,12 @@ function Graph.__call (graph)
       local successor = state (transition)
       local existing  = unique + successor
       successor = existing or successor
-      -- local existing = false
-      -- for _, s in ipairs (states) do
-      --   if s == successor then
-      --     existing  = true
-      --     successor = s
-      --     break
-      --   end
-      -- end
       if not existing then
         states [#states+1] = successor
         work   [#work  +1] = successor
       end
       state.successors [transition] = successor
     end
-    -- if #states % 100 == 0 then
-    --   print ("#states: ", #states, "#work: ", #work)
-    -- end
   end
   return initial, states
 end
