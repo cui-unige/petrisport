@@ -32,6 +32,26 @@ parser:flag "--deadlocks" {
 }
 
 local arguments = parser:parse ()
+
+do
+  local state = State {
+    petrinet = arguments.petrinet,
+    free     = arguments.free or 0,
+  }
+  local dot      = state:to_dot ()
+  local filename = os.tmpname ()
+  local file     = io.open (filename, "w")
+  file:write (dot)
+  file:close ()
+  os.execute (Et.render ([[
+    neato -n -Tpdf <%- filename %> -o output.pdf
+  ]], {
+    filename = filename,
+  }))
+  os.remove (filename)
+  print ("Model has been output in 'output.pdf'.")
+end
+
 local analysis  = Analysis {
   petrinet = arguments.petrinet,
 }
