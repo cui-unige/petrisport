@@ -1,5 +1,6 @@
 local Coromake = require "coroutine.make"
 local Et       = require "etlua"
+local Lom      = require "lxp.lom"
 
 local Mt       = {}
 local Petrinet = setmetatable ({}, Mt)
@@ -105,6 +106,75 @@ function Petrinet.transitions (petrinet)
       end
     end
   end)
+end
+
+local function childs (tag, xml)
+  local coroutine = Coromake ()
+  return coroutine.wrap (function ()
+    for _, child in pairs (xml or {}) do
+      if type (child) == "table" and child.tag == tag then
+        coroutine.yield (child)
+      end
+    end
+  end)
+end
+
+function Petrinet.pnml (filename)
+  local file     = assert (io.open (filename, "r"))
+  local contents = file:read "*a"
+  file:close ()
+  local xml = Lom.parse (contents)
+  assert (xml.tag == "pnml")
+  local result = Petrinet {}
+  local net  = childs ("net" , xml) ()
+  local page = childs ("page", net) ()
+  for place in childs ("place", page) do
+    local name     = childs ("name", place) ()
+    local text     = childs ("text", name) ()
+    local graphics = childs ("graphics", place) ()
+    local position = childs ("position", graphics) ()
+    local initial  = childs ("initialMarking", place) ()
+    local tokens   = childs ("text", initial) ()
+    result [place.attr.id] = result:place {
+      name    = text [1],
+      marking = tokens and tonumber (tokens [1]) or 0,
+      x       = position and  tonumber (position.attr.x) / 10,
+      y       = position and -tonumber (position.attr.y) / 10,
+    }
+  end
+  for transition in childs ("transition", page) do
+    local name     = childs ("name", transition) ()
+    local text     = childs ("text", name) ()
+    local graphics = childs ("graphics", transition) ()
+    local position = childs ("position", graphics) ()
+    result [transition.attr.id] = result:transition {
+      name    = text [1],
+      x       = position and  tonumber (position.attr.x) / 10,
+      y       = position and -tonumber (position.attr.y) / 10,
+    }
+  end
+  for arc in childs ("arc", page) do
+    local inscription = childs ("name", arc) ()
+    local text        = childs ("text", inscription) ()
+    local source      = arc.attr.source
+    local target      = arc.attr.target
+    if getmetatable (result [source]) == Petrinet.Transition then
+      local place      = result [target]
+      local transition = result [source]
+      local post       = place + (text and tonumber (text) or 1)
+      post.transition = transition
+      transition [#transition+1] = post
+    elseif getmetatable (result [target]) == Petrinet.Transition then
+      local place      = result [source]
+      local transition = result [target]
+      local pre        = place - (text and tonumber (text) or 1)
+      pre.transition = transition
+      transition [#transition+1] = pre
+    else
+      assert (false)
+    end
+  end
+  return result
 end
 
 return Petrinet

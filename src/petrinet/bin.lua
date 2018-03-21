@@ -4,7 +4,10 @@ package.path = "./src/?.lua;./src/?/init.lua;".. package.path
 
 local Arguments = require "argparse"
 local Et        = require "etlua"
+local Lfs       = require "lfs"
+local Petrinet  = require "petrinet"
 local Analysis  = require "petrinet.analysis"
+local State     = require "petrinet.state"
 
 local parser = Arguments () {
   name        = "petri-sport",
@@ -12,12 +15,34 @@ local parser = Arguments () {
 }
 parser:argument "petrinet" {
   description = "Petri net file to load",
-  default     = "petrinet.example",
+  default     = "petrinet.example.dimitri",
   convert     = function (x)
-    if x:match ".lua$" then
-      return assert (loadfile (x, "r"))
-    else
-      return require (x)
+    while true do
+      local mode = Lfs.attributes (x, "mode")
+      if mode == "file" and x:match "%.lua$" then
+        return assert (loadfile (x, "r"))
+      elseif mode == "file" and x:match "%.pnml$" then
+        return Petrinet.pnml (x)
+      elseif mode == "file" and x:match "%.tgz" then
+        local temporary = os.tmpname ()
+        os.remove (temporary)
+        Lfs.mkdir (temporary)
+        assert (os.execute (Et.render ([[
+          tar xf "<%- filename %>" \
+              -C "<%- directory %>" \
+              --strip-components=1
+        ]], {
+          directory = temporary,
+          filename = x,
+        })))
+        x = temporary
+      elseif mode == "directory" then
+        x = x .. "/model.pnml"
+      elseif not mode then
+        return require (x)
+      else
+        assert (false, "unknown format for " .. x)
+      end
     end
   end,
 }
