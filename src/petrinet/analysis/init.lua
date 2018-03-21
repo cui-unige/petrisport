@@ -148,7 +148,7 @@ end
 function Analysis.__call (analysis, free)
   local coroutine = Coromake ()
   return coroutine.wrap (function ()
-    for f = free or 0, free or math.huge do
+    for f = 0, free or math.huge do
       local reachability = Reachability {
         petrinet  = analysis.petrinet,
         free      = f,
