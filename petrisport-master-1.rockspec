@@ -17,6 +17,7 @@ description = {
 
 dependencies = {
   "lua >= 5.1",
+  "ansicolors",
   "argparse",
   "busted",
   "luacheck",
@@ -25,6 +26,10 @@ dependencies = {
   "etlua",
   "luaexpat",
   "luafilesystem",
+  "lualogging",
+  "luasocket",
+  "luasec",
+  "magic",
 }
 
 build = {
@@ -37,11 +42,10 @@ build = {
     ["petrinet.analysis"    ] = "src/petrinet/analysis/init.lua",
     ["petrinet.example.dimitri"     ] = "src/petrinet/example/dimitri.lua",
     ["petrinet.example.flag"        ] = "src/petrinet/example/flag.lua",
-    ["petrinet.example.philosophers"] = "src/petrinet/example/philosophers.lua",
   },
   install = {
     bin = {
-      ["petri-sport"] = "src/petrinet/bin.lua",
+      ["petrisport"] = "src/petrinet/bin.lua",
     },
   },
 }

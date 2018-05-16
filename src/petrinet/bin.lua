@@ -3,28 +3,88 @@
 package.path = "./src/?.lua;./src/?/init.lua;".. package.path
 
 local Arguments = require "argparse"
+local Colors    = require 'ansicolors'
 local Et        = require "etlua"
+local Http      = require "socket.http"
+local Https     = require "ssl.https"
 local Lfs       = require "lfs"
+local Logging   = require "logging"
+local Ltn12     = require "ltn12"
+local Magic     = require "magic"
 local Petrinet  = require "petrinet"
 local Analysis  = require "petrinet.analysis"
 local State     = require "petrinet.state"
+
+local zip_mime = {
+  ["application/x-gzip" ] = true,
+  ["application/x-bzip" ] = true,
+  ["application/x-bzip2"] = true,
+  ["application/x-tar"  ] = true,
+}
+
+local logger = Logging.new (function (_, level, message)
+  if     level == Logging.DEBUG then
+    print (Colors ("%{white blackbg}DEBUG:%{reset} " .. message))
+  elseif level == Logging.INFO  then
+    print (Colors ("%{green blackbg}INFO :%{reset} " .. message))
+  elseif level == Logging.WARN  then
+    print (Colors ("%{yellow bright blackbg}WARN :%{reset} " .. message))
+  elseif level == Logging.ERROR then
+    print (Colors ("%{red bright blackbg}ERROR:%{reset} " .. message))
+  elseif level == Logging.FATAL then
+    print (Colors ("%{red bright underline blackbg}FATAL:%{reset} " .. message))
+  else
+    assert (false, level)
+  end
+  return true
+end)
+-- logger:setLevel (Logging.INFO)
 
 local parser = Arguments () {
   name        = "petri-sport",
   description = "",
 }
 parser:argument "petrinet" {
-  description = "Petri net file to load",
-  default     = "petrinet.example.dimitri",
+  description = "Petri net file or URL to load",
   convert     = function (x)
+    local created = nil
+    if x:match "^https?://" then
+      logger:info ("Downloading model from " .. x .. "...")
+      local http      = x:match "^http://" and Http or Https
+      local result    = {}
+      local _, status = http.request {
+        url      = x,
+        method   = "GET",
+        -- redirect = true,
+        sink     = Ltn12.sink.table (result),
+      }
+      print (status)
+      assert (status == 200)
+      local filename = os.tmpname ()
+      logger:info ("Storing model in " .. filename .. "...")
+      local file     = io.open (filename, "w")
+      file:write (table.concat (result))
+      file:close ()
+      x       = filename
+      created = filename
+    end
+    local magic = Magic.open (Magic.MIME_TYPE, Magic.NO_CHECK_COMPRESS)
+    assert (magic:load () == 0)
     while true do
+      local result
       local mode = Lfs.attributes (x, "mode")
-      if mode == "file" and x:match "%.lua$" then
-        return assert (loadfile (x, "r"))
-      elseif mode == "file" and x:match "%.pnml$" then
-        return Petrinet.pnml (x)
-      elseif mode == "file" and x:match "%.tgz" then
+      if  mode == "file"
+      and (x:match "%.lua$" or magic:file (x) == "text/plain") then
+        logger:info ("Loading lua model from " .. x .. "...")
+        result = assert (loadfile (x, "r"))
+      elseif mode == "file"
+      and (x:match "%.pnml$" or magic:file (x) == "application/xml") then
+        logger:info ("Loading PNML model from " .. x .. "...")
+        result = Petrinet.pnml (x)
+      elseif mode == "file"
+      and (x:match "%.tgz" or zip_mime [magic:file (x)]) then
         local temporary = os.tmpname ()
+        logger:info ("Extracting archive from " .. x .. " to " .. temporary .. "...")
         os.remove (temporary)
         Lfs.mkdir (temporary)
         assert (os.execute (Et.render ([[
@@ -39,9 +99,17 @@ parser:argument "petrinet" {
       elseif mode == "directory" then
         x = x .. "/model.pnml"
       elseif not mode then
-        return require (x)
+        logger:info ("Loading lua module " .. x .. "...")
+        result = require (x)
       else
-        assert (false, "unknown format for " .. x)
+        logger:error ("Unknown model format for " .. x .. "...")
+        os.exit (1)
+      end
+      if result then
+        if created then
+          os.remove (created)
+        end
+        return result
       end
     end
   end,
@@ -74,7 +142,7 @@ do
     filename = filename,
   }))
   os.remove (filename)
-  print ("Model has been output in 'output.pdf'.")
+  logger:info ("Model has been output in 'output.pdf'.")
 end
 
 local analysis  = Analysis {
