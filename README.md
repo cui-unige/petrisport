@@ -17,7 +17,7 @@ It requires a working install of the [Lua](https://www.lua.org)
 programming language and of [Luarocks](https://luarocks.org).
 They can both be installed using the following command:
 
-```sh
+```console
 $ pip install hererocks # Requires python pip
 $ hererocks --lua=^ --luarocks=^ ~/.lua-env
   # The lua environment is installed in $HOME/.lua-env
@@ -25,7 +25,7 @@ $ hererocks --lua=^ --luarocks=^ ~/.lua-env
 
 It can be installed easily using the following command:
 
-```sh
+```console
 $ git clone https://github.com/cui-unige/petri-sport.git
 $ cd petri-sport
 $ ~/.lua-env/bin/luarocks make petrisport-master-1.rockspec
@@ -37,7 +37,7 @@ $ ~/.lua-env/bin/luarocks make petrisport-master-1.rockspec
 either as a Lua file/module or as a PNML model,
 for instance:
 
-```sh
+```console
 # A Lua module:
 $ petrisport petrinet.example.dimitri
 # A PNML model given as a file:
@@ -47,7 +47,7 @@ $ petrisport https://raw.githubusercontent.com/issamabd/PTNET-Editor/master/exam
 ```
 
 Help can be obtained as usual using the `-h` or `--help` option:
-```sh
+```console
 $ petrisport --help
 Usage: petrisport [--free <free>] [--deadlocks] [-h] <petrinet>
 
@@ -85,9 +85,8 @@ and computes the following properties on it:
   and show a path that leads to each one.
 
 The output is for instance as below:
-```sh
+```console
 $ petrisport --deadlocks petrinet.example.dimitri
-petrisport master-1 is now installed in /usr/local (license: MIT/X11)
 INFO : Loading lua module petrinet.example.dimitri...
 INFO : Model has been output in 'output.pdf'.
 - free tokens: 0
@@ -149,14 +148,14 @@ it should be to play a Sport Petri net.
 In order to standardize this rather subjective figure,
 we propose the following metrics to assess the entertainment potential:
 
-* # of states:
+* Number of states:
   A Sport Petri net with only a few reachable states if not interesting,
   because players will repeat the same actions over and over.
-* # of deadlocks:
+* Number of deadlock states:
   Playing should contain the risk of being trapped in a deadlock
   in order to keep the players focused on the game.
   This number should thus not be zero.
-* # of deadlocking:
+* Number of deadlocking states:
   States leading only to deadlocks are not of interest since
   players cannot escape the deadlock, whatever they do.
   The number of such states should thus remain low,
