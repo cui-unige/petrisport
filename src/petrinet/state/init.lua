@@ -90,12 +90,10 @@ function State.parallel (state)
   local coroutine = Coromake ()
   local function iterate (s, transitions, fired)
     local any = false
-    for i, transition in ipairs (transitions) do
+    for _, transition in ipairs (transitions) do
       if transition:enabled_in (s) then
         fired [transition] = true
-        table.remove (transitions, i)
         iterate (s:pre (transition), transitions, fired)
-        table.insert (transitions, i, transition)
         fired [transition] = nil
         any = true
       end
