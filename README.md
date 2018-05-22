@@ -171,3 +171,18 @@ we propose the following metrics to assess the entertainment potential:
   but at the increased risk of sudden death
   because coordination is more difficult.
   A high parallel ratio is thus a good thing.
+
+This repository provides two example Petri nets:
+
+* A sport Petri net that can be used as a tutorial.
+  It features choices, synchronizations and parallel firing.
+  ![Tutorial Petri net](images/example-tutorial.png)
+* A sport Petri net that can be played with trained teams.
+  ![Tutorial Petri net](images/example-dimitri.png)
+
+Both can be tested in the tool using:
+
+```console
+$ petrisport --deadlocks petrinet.example.tutorial
+$ petrisport --deadlocks petrinet.example.dimitri
+```
