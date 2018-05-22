@@ -23,13 +23,18 @@ $ hererocks --lua=^ --luarocks=^ ~/.lua-env
   # The lua environment is installed in $HOME/.lua-env
 ```
 
-It can be installed easily using the following command:
+It can be installed in two ways:
 
-```console
-$ git clone https://github.com/cui-unige/petri-sport.git
-$ cd petri-sport
-$ ~/.lua-env/bin/luarocks make petrisport-master-1.rockspec
-```
+* for the latest tagged version:
+  ```console
+  $ luarocks install petrisport
+  ```
+* for the development (but stable) version:
+  ```console
+  $ git clone https://github.com/cui-unige/petri-sport.git
+  $ cd petri-sport
+  $ ~/.lua-env/bin/luarocks make petrisport-master-1.rockspec
+  ```
 
 ## Run
 
