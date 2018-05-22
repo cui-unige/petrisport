@@ -36,7 +36,7 @@ function State.__call (state, transition)
     post [arc.place] = arc.valuation
     free = free + arc.valuation
   end
-  assert (state.free - free + bound > 0)
+  assert (state.free - free + bound >= 0)
   return setmetatable ({
     petrinet   = state.petrinet,
     free       = state.free - free + bound,
