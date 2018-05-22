@@ -3,14 +3,14 @@
 package = "petrisport"
 version = "master-1"
 source  = {
-  url    = "git+https://github.com/saucisson/petri-sport.git",
+  url    = "git+https://github.com/cui-unige/petrisport.git",
   branch = "master",
 }
 
 description = {
   summary    = "Petri sport",
   detailed   = [[]],
-  homepage   = "https://github.com/saucisson/petri-sport",
+  homepage   = "https://github.com/cui-unige/petrisport",
   license    = "MIT/X11",
   maintainer = "Alban Linard <alban@linard.fr>",
 }
