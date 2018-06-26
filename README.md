@@ -10,6 +10,12 @@ As the playing field is shaped like a Petri net,
 it is possible to challenge a player's movement speed,
 intellectual capabilities, as well as team coordination and communication.
 
+
+## Introductory presentation
+Find below the link to an introductory presentation, held at the PNSE'18 workshop.
+
+https://cui-unige.github.io/petrisport/PNSE2018-presentation/
+
 ## Install
 
 `petrisport` is available as a lua rock.
@@ -192,4 +198,3 @@ $ petrisport --deadlocks petrinet.example.tutorial
 $ petrisport --deadlocks petrinet.example.dimitri
 ```
 
-<iframe width="100%" height="400px" src="https://cui-unige.github.io/petrisport/PNSE2018-presentation/" frameborder="0" />
