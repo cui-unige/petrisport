@@ -191,3 +191,5 @@ Both can be tested in the tool using:
 $ petrisport --deadlocks petrinet.example.tutorial
 $ petrisport --deadlocks petrinet.example.dimitri
 ```
+
+<iframe width="100%" height="400px" src="https://cui-unige.github.io/petrisport/PNSE2018-presentation/" frameborder="0" />
